@@ -1,0 +1,104 @@
+{
+  "name": "vscode-thothglyph",
+  "displayName": "vscode-thothglyph",
+  "description": "Thothglyph support for Visual Studio Code",
+  "version": "0.0.1",
+
+  "publisher": "nakandev",
+  "license": "SEE LICENSE",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/nakandev/vscode-thothglyph.git"
+  },
+
+  "keywords": [
+    "thothglyph"
+  ],
+  "engines": {
+    "vscode": "^1.72.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:vscode-thothglyph.installPyenv",
+    "onCommand:vscode-thothglyph.exportFileAs",
+    "onCommand:vscode-thothglyph.exportFileHtml",
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "vscode-thothglyph.installPyenv",
+        "title": "Install Environment",
+        "category": "Thothglyph"
+      },
+      {
+        "command": "vscode-thothglyph.exportFileAs",
+        "title": "Export File As ...",
+        "category": "Thothglyph"
+      },
+      {
+        "command": "vscode-thothglyph.exportFileHtml",
+        "title": "Export File As Html",
+        "category": "Thothglyph"
+      }
+    ],
+    "menus": {
+        "commandPalette": [
+        {
+          "command": "vscode-thothglyph.exportFileHtml",
+            "when": "false"
+        }]
+    },
+    "keybindings": [
+      {
+          "mac": "cmd+e",
+          "win": "ctrl+e",
+          "linux": "ctrl+e",
+          "key": "ctrl+e",
+          "command": "vscode-thothglyph.exportFileHtml",
+          "when": "editorTextFocus && !editorReadonly"
+      }
+    ],
+    "languages": [
+      {
+        "id": "thothglyph",
+        "aliases": [
+          "Thothglyph"
+        ],
+        "extensions": [
+          ".tglyph"
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.72.0",
+    "@types/glob": "^8.0.0",
+    "@types/mocha": "^10.0.0",
+    "@types/node": "16.x",
+    "@typescript-eslint/eslint-plugin": "^5.38.1",
+    "@typescript-eslint/parser": "^5.38.1",
+    "eslint": "^8.24.0",
+    "glob": "^8.0.3",
+    "mocha": "^10.0.0",
+    "typescript": "^4.8.4",
+    "ts-loader": "^9.4.1",
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0",
+    "@vscode/test-electron": "^2.1.5"
+  }
+}
