@@ -183,100 +183,121 @@ function replaceSymbols(text: string)
 
 	clearTimeout(keyPressTimeout);
 	editorKeyPressed.push(text);
+	if(editorKeyPressed.length > 2) {
+		editorKeyPressed.shift();
+	}
 
 	// inoremap <buffer> @@@ ¤¤¤
 	// inoremap <buffer> ``` ⸌⸌⸌
-	if (arrayEquals(editorKeyPressed, ['#'])) {
+	if (arrayEquals(editorKeyPressed, ['%', '%'])) {
+		vscode.commands.executeCommand('deleteLeft');
+		vscode.commands.executeCommand('default:type', {'text': '⑇'});
+		editorKeyPressed = [];
 	} else if (arrayEquals(editorKeyPressed, ['#', '#'])) {
+		vscode.commands.executeCommand('deleteLeft');
 		vscode.commands.executeCommand('default:type', {'text': '▮'});
 		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['@'])) {
 	} else if (arrayEquals(editorKeyPressed, ['@', '@'])) {
+		vscode.commands.executeCommand('deleteLeft');
 		vscode.commands.executeCommand('default:type', {'text': '¤'});
 		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['`'])) {
 	} else if (arrayEquals(editorKeyPressed, ['`', '`'])) {
+		vscode.commands.executeCommand('deleteLeft');
 		vscode.commands.executeCommand('default:type', {'text': '⸌'});
 		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['*'])) {
 	} else if (arrayEquals(editorKeyPressed, ['*', '*'])) {
+		vscode.commands.executeCommand('deleteLeft');
 		vscode.commands.executeCommand('default:type', {'text': '•'});
 		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['+'])) {
 	} else if (arrayEquals(editorKeyPressed, ['+', '+'])) {
+		vscode.commands.executeCommand('deleteLeft');
 		vscode.commands.executeCommand('default:type', {'text': '꓾'});
 		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, [':'])) {
 	} else if (arrayEquals(editorKeyPressed, [':', ':'])) {
+		vscode.commands.executeCommand('deleteLeft');
 		vscode.commands.executeCommand('default:type', {'text': 'ᛝ'});
 		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['-'])) {
 	} else if (arrayEquals(editorKeyPressed, ['-', '-'])) {
+		vscode.commands.executeCommand('deleteLeft');
 		vscode.commands.executeCommand('default:type', {'text': '◃'});
 		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['['])) {
 	} else if (arrayEquals(editorKeyPressed, ['[', '['])) {
+		vscode.commands.executeCommand('deleteLeft');
 		vscode.commands.executeCommand('default:type', {'text': '⟦'});
 		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, [']'])) {
 	} else if (arrayEquals(editorKeyPressed, [']', ']'])) {
+		vscode.commands.executeCommand('deleteLeft');
 		vscode.commands.executeCommand('default:type', {'text': '⟧'});
 		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['('])) {
 	} else if (arrayEquals(editorKeyPressed, ['(', '('])) {
+		vscode.commands.executeCommand('deleteLeft');
 		vscode.commands.executeCommand('default:type', {'text': '⸨'});
 		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, [')'])) {
 	} else if (arrayEquals(editorKeyPressed, [')', ')'])) {
+		vscode.commands.executeCommand('deleteLeft');
 		vscode.commands.executeCommand('default:type', {'text': '⸩'});
 		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['{'])) {
 	} else if (arrayEquals(editorKeyPressed, ['{', '{'])) {
+		vscode.commands.executeCommand('deleteLeft');
 		vscode.commands.executeCommand('default:type', {'text': '⁅'});
 		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['}'])) {
 	} else if (arrayEquals(editorKeyPressed, ['}', '}'])) {
+		vscode.commands.executeCommand('deleteLeft');
 		vscode.commands.executeCommand('default:type', {'text': '⁆'});
 		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['/'])) {
+	} else if (arrayEquals(editorKeyPressed, ['<', '<'])) {
+		vscode.commands.executeCommand('deleteLeft');
+		vscode.commands.executeCommand('default:type', {'text': '⏴'});
+		editorKeyPressed = [];
+	} else if (arrayEquals(editorKeyPressed, ['>', '>'])) {
+		vscode.commands.executeCommand('deleteLeft');
+		vscode.commands.executeCommand('default:type', {'text': '⏵'});
+		editorKeyPressed = [];
+	} else if (arrayEquals(editorKeyPressed, ['^', '^'])) {
+		vscode.commands.executeCommand('deleteLeft');
+		vscode.commands.executeCommand('default:type', {'text': '⏶'});
+		editorKeyPressed = [];
+	} else if (arrayEquals(editorKeyPressed, ['~', '~'])) {
+		vscode.commands.executeCommand('deleteLeft');
+		vscode.commands.executeCommand('default:type', {'text': '⏷'});
+		editorKeyPressed = [];
 	} else if (arrayEquals(editorKeyPressed, ['/', ' '])) {
+		vscode.commands.executeCommand('deleteLeft');
 		vscode.commands.executeCommand('default:type', {'text': '⁒'});
 		editorKeyPressed = [];
-	// } else if (arrayEquals(editorKeyPressed, ['*'])) {
 	} else if (arrayEquals(editorKeyPressed, ['*', ' '])) {
+		vscode.commands.executeCommand('deleteLeft');
 		vscode.commands.executeCommand('default:type', {'text': '⋄'});
 		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['_'])) {
 	} else if (arrayEquals(editorKeyPressed, ['_', ' '])) {
+		vscode.commands.executeCommand('deleteLeft');
 		vscode.commands.executeCommand('default:type', {'text': '‗'});
 		editorKeyPressed = [];
-	// } else if (arrayEquals(editorKeyPressed, ['-'])) {
 	} else if (arrayEquals(editorKeyPressed, ['-', ' '])) {
+		vscode.commands.executeCommand('deleteLeft');
 		vscode.commands.executeCommand('default:type', {'text': '¬'});
 		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['^'])) {
 	} else if (arrayEquals(editorKeyPressed, ['^', ' '])) {
+		vscode.commands.executeCommand('deleteLeft');
 		vscode.commands.executeCommand('default:type', {'text': '⌃'});
 		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['~'])) {
 	} else if (arrayEquals(editorKeyPressed, ['~', ' '])) {
+		vscode.commands.executeCommand('deleteLeft');
 		vscode.commands.executeCommand('default:type', {'text': '⌄'});
 		editorKeyPressed = [];
-	// } else if (arrayEquals(editorKeyPressed, ['`'])) {
 	} else if (arrayEquals(editorKeyPressed, ['`', ' '])) {
+		vscode.commands.executeCommand('deleteLeft');
 		vscode.commands.executeCommand('default:type', {'text': '⸌'});
 		editorKeyPressed = [];
-	// } else if (arrayEquals(editorKeyPressed, [':'])) {
 	} else if (arrayEquals(editorKeyPressed, [':', ' '])) {
+		vscode.commands.executeCommand('deleteLeft');
 		vscode.commands.executeCommand('default:type', {'text': '⫶'});
 		editorKeyPressed = [];
 	} else {
-		vscode.commands.executeCommand('default:type', {'text': editorKeyPressed.join('')});
-		editorKeyPressed = [];
+		vscode.commands.executeCommand('default:type', {'text': text});
 	}
 
 	keyPressTimeout = setTimeout(() => {
-		vscode.commands.executeCommand('default:type', {'text': editorKeyPressed.join('')});
 		editorKeyPressed = [];
 	}, 500);
 }
