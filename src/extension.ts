@@ -30,10 +30,9 @@ export function activate(context: vscode.ExtensionContext) {
 		exportLast = 'html';
 		exportFile(context, false);
 	}));
-	context.subscriptions.push(vscode.commands.registerTextEditorCommand('type', (editor, edit, e) => {
-		return replaceSymbols(e.text);
+	context.subscriptions.push(vscode.commands.registerCommand('vscode-thothglyph.editor.replaceSymbols', () => {
+		replaceSymbols();
 	}));
-	// context.subscriptions.push(openPreview);
 }
 
 export function deactivate()
@@ -155,149 +154,117 @@ async function exportFile(context: vscode.ExtensionContext, asnew: boolean) {
 	}
 }
 
-export function arrayEquals<T>(xs: T[], ys: T[]) {
-    if (xs.length !== ys.length) {
-        return false;
-    }
-
-    for (let i = 0; i < xs.length; ++i) {
-        if (xs[i] !== ys[i]) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-function replaceSymbols(text: string)
+function replaceSymbols()
 {
 	let editor = vscode.window.activeTextEditor;
 	if (!editor) {
-		vscode.commands.executeCommand('default:type', {'text': text});
 		return;
 	}
 	if (editor.document.languageId != 'thothglyph') {
-		vscode.commands.executeCommand('default:type', {'text': text});
 		return;
 	}
 
-	clearTimeout(keyPressTimeout);
-	editorKeyPressed.push(text);
-	if(editorKeyPressed.length > 2) {
-		editorKeyPressed.shift();
+	let pos = editor.selection.active;
+	if (pos.character == 0) return;
+	if (!editor.selection.isEmpty) return;
+
+	let range = new vscode.Range(new vscode.Position(pos.line, pos.character-1), pos);
+	let symbol = editor.document.getText(range);
+	let range2 = range, symbol2 = symbol;
+	let range3 = range, symbol3 = symbol;
+	if (pos.character >= 2) {
+		range2 = new vscode.Range(new vscode.Position(pos.line, pos.character-2), pos);
+		symbol2 = editor.document.getText(range2);
+	}
+	if (pos.character >= 3) {
+		range3 = new vscode.Range(new vscode.Position(pos.line, pos.character-3), pos);
+		symbol3 = editor.document.getText(range3);
 	}
 
-	// inoremap <buffer> @@@ ¤¤¤
-	// inoremap <buffer> ``` ⸌⸌⸌
-	if (arrayEquals(editorKeyPressed, ['%', '%'])) {
-		vscode.commands.executeCommand('deleteLeft');
-		vscode.commands.executeCommand('default:type', {'text': '⑇'});
-		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['#', '#'])) {
-		vscode.commands.executeCommand('deleteLeft');
-		vscode.commands.executeCommand('default:type', {'text': '▮'});
-		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['@', '@'])) {
-		vscode.commands.executeCommand('deleteLeft');
-		vscode.commands.executeCommand('default:type', {'text': '¤'});
-		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['`', '`'])) {
-		vscode.commands.executeCommand('deleteLeft');
-		vscode.commands.executeCommand('default:type', {'text': '⸌'});
-		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['*', '*'])) {
-		vscode.commands.executeCommand('deleteLeft');
-		vscode.commands.executeCommand('default:type', {'text': '•'});
-		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['+', '+'])) {
-		vscode.commands.executeCommand('deleteLeft');
-		vscode.commands.executeCommand('default:type', {'text': '꓾'});
-		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, [':', ':'])) {
-		vscode.commands.executeCommand('deleteLeft');
-		vscode.commands.executeCommand('default:type', {'text': 'ᛝ'});
-		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['-', '-'])) {
-		vscode.commands.executeCommand('deleteLeft');
-		vscode.commands.executeCommand('default:type', {'text': '◃'});
-		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['[', '['])) {
-		vscode.commands.executeCommand('deleteLeft');
-		vscode.commands.executeCommand('default:type', {'text': '⟦'});
-		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, [']', ']'])) {
-		vscode.commands.executeCommand('deleteLeft');
-		vscode.commands.executeCommand('default:type', {'text': '⟧'});
-		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['(', '('])) {
-		vscode.commands.executeCommand('deleteLeft');
-		vscode.commands.executeCommand('default:type', {'text': '⸨'});
-		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, [')', ')'])) {
-		vscode.commands.executeCommand('deleteLeft');
-		vscode.commands.executeCommand('default:type', {'text': '⸩'});
-		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['{', '{'])) {
-		vscode.commands.executeCommand('deleteLeft');
-		vscode.commands.executeCommand('default:type', {'text': '⁅'});
-		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['}', '}'])) {
-		vscode.commands.executeCommand('deleteLeft');
-		vscode.commands.executeCommand('default:type', {'text': '⁆'});
-		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['<', '<'])) {
-		vscode.commands.executeCommand('deleteLeft');
-		vscode.commands.executeCommand('default:type', {'text': '⏴'});
-		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['>', '>'])) {
-		vscode.commands.executeCommand('deleteLeft');
-		vscode.commands.executeCommand('default:type', {'text': '⏵'});
-		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['^', '^'])) {
-		vscode.commands.executeCommand('deleteLeft');
-		vscode.commands.executeCommand('default:type', {'text': '⏶'});
-		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['~', '~'])) {
-		vscode.commands.executeCommand('deleteLeft');
-		vscode.commands.executeCommand('default:type', {'text': '⏷'});
-		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['/', ' '])) {
-		vscode.commands.executeCommand('deleteLeft');
-		vscode.commands.executeCommand('default:type', {'text': '⁒'});
-		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['*', ' '])) {
-		vscode.commands.executeCommand('deleteLeft');
-		vscode.commands.executeCommand('default:type', {'text': '⋄'});
-		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['_', ' '])) {
-		vscode.commands.executeCommand('deleteLeft');
-		vscode.commands.executeCommand('default:type', {'text': '‗'});
-		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['-', ' '])) {
-		vscode.commands.executeCommand('deleteLeft');
-		vscode.commands.executeCommand('default:type', {'text': '¬'});
-		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['^', ' '])) {
-		vscode.commands.executeCommand('deleteLeft');
-		vscode.commands.executeCommand('default:type', {'text': '⌃'});
-		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['~', ' '])) {
-		vscode.commands.executeCommand('deleteLeft');
-		vscode.commands.executeCommand('default:type', {'text': '⌄'});
-		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, ['`', ' '])) {
-		vscode.commands.executeCommand('deleteLeft');
-		vscode.commands.executeCommand('default:type', {'text': '⸌'});
-		editorKeyPressed = [];
-	} else if (arrayEquals(editorKeyPressed, [':', ' '])) {
-		vscode.commands.executeCommand('deleteLeft');
-		vscode.commands.executeCommand('default:type', {'text': '⫶'});
-		editorKeyPressed = [];
-	} else {
-		vscode.commands.executeCommand('default:type', {'text': text});
+	/* Block symbol */
+	if (symbol3 == '%%%') {
+		editor.edit(editBuilder => {editBuilder.replace(range3, '⑇⑇⑇');});
+	} else
+	if (symbol3 == '@@@') {
+		editor.edit(editBuilder => {editBuilder.replace(range3, '¤¤¤');});
+	} else
+	if (symbol3 == '```') {
+		editor.edit(editBuilder => {editBuilder.replace(range3, '⸌⸌⸌');});
+	} else
+	if (symbol == '%') {
+		editor.edit(editBuilder => {editBuilder.replace(range, '⑇');});
+	} else
+	if (symbol == '#') {
+		editor.edit(editBuilder => {editBuilder.replace(range, '▮');});
+	} else
+	if (symbol == '@') {
+		editor.edit(editBuilder => {editBuilder.replace(range, '¤');});
+	} else
+	if (symbol == '`') {
+		editor.edit(editBuilder => {editBuilder.replace(range, '⸌');});
+	} else
+	if (symbol == '*') {
+		editor.edit(editBuilder => {editBuilder.replace(range, '•');});
+	} else
+	if (symbol == '+') {
+		editor.edit(editBuilder => {editBuilder.replace(range, '꓾');});
+	} else
+	if (symbol == ':') {
+		editor.edit(editBuilder => {editBuilder.replace(range, 'ᛝ');});
+	} else
+	if (symbol == '-') {
+		editor.edit(editBuilder => {editBuilder.replace(range, '◃');});
+	} else
+	/* Inline symbol */
+	if (symbol == '[') {
+		editor.edit(editBuilder => {editBuilder.replace(range, '⟦');});
+	} else
+	if (symbol == ']') {
+		editor.edit(editBuilder => {editBuilder.replace(range, '⟧');});
+	} else
+	if (symbol == '(') {
+		editor.edit(editBuilder => {editBuilder.replace(range, '⸨');});
+	} else
+	if (symbol == ')') {
+		editor.edit(editBuilder => {editBuilder.replace(range, '⸩');});
+	} else
+	if (symbol == '⟦') {
+		editor.edit(editBuilder => {editBuilder.replace(range, '⁅');});
+	} else
+	if (symbol == '⟧') {
+		editor.edit(editBuilder => {editBuilder.replace(range, '⁆');});
+	} else
+	if (symbol == '<') {
+		editor.edit(editBuilder => {editBuilder.replace(range, '⏴');});
+	} else
+	if (symbol == '>') {
+		editor.edit(editBuilder => {editBuilder.replace(range, '⏵');});
+	} else
+	if (symbol == '^') {
+		editor.edit(editBuilder => {editBuilder.replace(range, '⏶');});
+	} else
+	if (symbol == '~') {
+		editor.edit(editBuilder => {editBuilder.replace(range, '⏷');});
+	} else
+	/* Deco symbol */
+	if (symbol == '•') {
+		editor.edit(editBuilder => {editBuilder.replace(range, '⋄');});
+	} else
+	if (symbol == '_') {
+		editor.edit(editBuilder => {editBuilder.replace(range, '‗');});
+	} else
+	if (symbol == '◃') {
+		editor.edit(editBuilder => {editBuilder.replace(range, '¬');});
+	} else
+	if (symbol == '⏶') {
+		editor.edit(editBuilder => {editBuilder.replace(range, '⌃');});
+	} else
+	if (symbol == '⏷') {
+		editor.edit(editBuilder => {editBuilder.replace(range, '⌄');});
+	} else
+	if (symbol == 'ᛝ') {
+		editor.edit(editBuilder => {editBuilder.replace(range, '⫶');});
+	} else
+	{
 	}
-
-	keyPressTimeout = setTimeout(() => {
-		editorKeyPressed = [];
-	}, 500);
 }

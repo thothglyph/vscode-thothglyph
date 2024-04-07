@@ -2,13 +2,13 @@
   "name": "vscode-thothglyph",
   "displayName": "vscode-thothglyph",
   "description": "Thothglyph support for Visual Studio Code",
-  "version": "0.0.2",
+  "version": "0.0.3",
 
   "publisher": "nakandev",
   "license": "SEE LICENSE",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/nakandev/vscode-thothglyph.git"
+    "url": "git+ssh://git@github.com/thothglyph/vscode-thothglyph.git"
   },
 
   "keywords": [
@@ -60,6 +60,11 @@
           "key": "ctrl+e",
           "command": "vscode-thothglyph.exportFileHtml",
           "when": "editorTextFocus && !editorReadonly"
+      },
+      {
+          "key": "shift+space",
+          "command": "vscode-thothglyph.editor.replaceSymbols",
+          "when": "editorTextFocus && !suggestWidgetVisible && editorLangId==thothglyph"
       }
     ],
     "languages": [

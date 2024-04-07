@@ -5,8 +5,8 @@ This extension provides language support for Thothglyph to Visual Studio Code.
 ## Features
 
 * File Export
+* Editor Enhancement
 * Live Preview [TODO]
-* Editor Enhancement [TODO]
 
 ## Requirements
 
@@ -22,14 +22,12 @@ This extension provides language support for Thothglyph to Visual Studio Code.
 * Type "Thothglyph" and click "Thothglyph: Export File"
 * Select export format
 
+### Editor Enhancement
+
+See [document](https://thothglyph-doc.readthedocs.io/en/latest/tool/vscode.html)
+
 ## Known Issues
 
 ### Character encoding error on Windows
 
 Please add a setting to open the terminal with UTF-8 to settings.json.
-
-## Release Notes
-
-### 0.0.1
-
-Extension development trial.
