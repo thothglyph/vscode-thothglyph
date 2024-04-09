@@ -191,6 +191,9 @@ function replaceSymbols()
 	if (symbol3 == '```') {
 		editor.edit(editBuilder => {editBuilder.replace(range3, '⸌⸌⸌');});
 	} else
+	if (symbol2 == '%%') {
+		editor.edit(editBuilder => {editBuilder.replace(range2, '⑇⑇');});
+	} else
 	if (symbol == '%') {
 		editor.edit(editBuilder => {editBuilder.replace(range, '⑇');});
 	} else
@@ -215,7 +218,13 @@ function replaceSymbols()
 	if (symbol == '-') {
 		editor.edit(editBuilder => {editBuilder.replace(range, '◃');});
 	} else
+	if (symbol == '\\') {
+		editor.edit(editBuilder => {editBuilder.replace(range, '⊹');});
+	} else
 	/* Inline symbol */
+	if (symbol == '⊹') {
+		editor.edit(editBuilder => {editBuilder.replace(range, '↲');});
+	} else
 	if (symbol == '[') {
 		editor.edit(editBuilder => {editBuilder.replace(range, '⟦');});
 	} else
@@ -227,6 +236,12 @@ function replaceSymbols()
 	} else
 	if (symbol == ')') {
 		editor.edit(editBuilder => {editBuilder.replace(range, '⸩');});
+	} else
+	if (symbol == '{') {
+		editor.edit(editBuilder => {editBuilder.replace(range, '⦃');});
+	} else
+	if (symbol == '}') {
+		editor.edit(editBuilder => {editBuilder.replace(range, '⦄');});
 	} else
 	if (symbol == '⟦') {
 		editor.edit(editBuilder => {editBuilder.replace(range, '⁅');});
@@ -249,6 +264,9 @@ function replaceSymbols()
 	/* Deco symbol */
 	if (symbol == '•') {
 		editor.edit(editBuilder => {editBuilder.replace(range, '⋄');});
+	} else
+	if (symbol == '/') {
+		editor.edit(editBuilder => {editBuilder.replace(range, '⁒');});
 	} else
 	if (symbol == '_') {
 		editor.edit(editBuilder => {editBuilder.replace(range, '‗');});
