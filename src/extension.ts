@@ -19,9 +19,13 @@ export function activate(context: vscode.ExtensionContext) {
 	console.log('Congratulations, your extension "vscode-thothglyph" is now active!');
 
 	installPyenv(context);
+	updatePyenv(context);
 
 	context.subscriptions.push(vscode.commands.registerCommand('vscode-thothglyph.installPyenv', () => {
 		installPyenv(context);
+	}));
+	context.subscriptions.push(vscode.commands.registerCommand('vscode-thothglyph.updatePyenv', () => {
+		updatePyenv(context);
 	}));
 	context.subscriptions.push(vscode.commands.registerCommand('vscode-thothglyph.exportFileAs', () => {
 		exportFile(context, true);
@@ -47,7 +51,6 @@ function installPyenv(context: vscode.ExtensionContext) {
 	let thothglyphCmd = path.join(pyenvPath, pyenvBin, 'thothglyph');
 
 	if (existsSync(thothglyphCmd)) {
-		vscode.window.showInformationMessage('Install Thothglyph: Thothglyph already exists');
 		return;
 	}
 
@@ -93,6 +96,63 @@ function installPyenv(context: vscode.ExtensionContext) {
 			}
 		}
 		progress.report({ message: 'finished', increment: 60 });
+		await promises_setTimeout(5000);
+	});
+}
+
+function updatePyenv(context: vscode.ExtensionContext) {
+	let thothglyphHome = context.globalStorageUri.fsPath;
+	let pyenvName = 'pyenv';
+	let pyenvBin = (is_win ? 'Scripts' : 'bin');
+	let pyenvPath = path.join(thothglyphHome, pyenvName);
+	let thothglyphCmd = path.join(pyenvPath, pyenvBin, 'thothglyph');
+
+	if (!existsSync(thothglyphCmd)) {
+		return;
+	}
+	try {
+		var stdout = execSync(path.join(pyenvName, pyenvBin, 'pip') + ' list -o', { cwd: thothglyphHome }).toString();
+		if (stdout.search("thothglyph") < 0) {
+			// already latest version.
+			return;
+		}
+	}
+	catch(error: any){
+	}
+
+	vscode.window.withProgress({title: 'Update Thothglyph', location: vscode.ProgressLocation.Notification}, async progress => {
+		progress.report({ message: 'pip install -U thothglyph-doc', increment: 30 });
+		try {
+			execSync(path.join(pyenvName, pyenvBin, 'pip') + ' install -U thothglyph-doc', { cwd: thothglyphHome });
+		}
+		catch(error: any){
+			if (error !== null) {
+				console.log('exec error: ' + error);
+				vscode.window.showErrorMessage('exec error: ' + error);
+			}
+			var stderr = error.stderr.toString();
+			if (stderr !== null && stderr !== '') {
+				console.log(stderr.toString());
+				vscode.window.showErrorMessage('stderr: ' + stderr.toString());
+			}
+		}
+
+		var stdout = "";
+		try {
+			stdout = execSync(path.join(pyenvName, pyenvBin, 'thothglyph') + ' -v', { cwd: thothglyphHome }).toString();
+		}
+		catch(error: any){
+			if (error !== null) {
+				console.log('exec error: ' + error);
+				vscode.window.showErrorMessage('exec error: ' + error);
+			}
+			var stderr = error.stderr.toString();
+			if (stderr !== null && stderr !== '') {
+				console.log(stderr.toString());
+				vscode.window.showErrorMessage('stderr: ' + stderr.toString());
+			}
+		}
+		progress.report({ message: 'finished: ' + stdout, increment: 60 });
 		await promises_setTimeout(5000);
 	});
 }
