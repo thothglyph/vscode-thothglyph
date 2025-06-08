@@ -5,6 +5,7 @@ import {exec, execSync} from 'child_process';
 import * as path from 'path';
 import { existsSync, mkdirSync } from 'fs';
 import { setTimeout as promises_setTimeout } from 'timers/promises';
+import * as fs from 'fs';
 
 const is_win = process.platform==='win32'
 const is_mac = process.platform==='darwin'
@@ -16,10 +17,8 @@ let editorKeyPressed: string[] = [];
 let keyPressTimeout: NodeJS.Timeout | undefined = undefined;
 
 export function activate(context: vscode.ExtensionContext) {
-	console.log('Congratulations, your extension "vscode-thothglyph" is now active!');
-
-	installPyenv(context);
-	updatePyenv(context);
+	//installPyenv(context);
+	//updatePyenv(context);
 
 	context.subscriptions.push(vscode.commands.registerCommand('vscode-thothglyph.installPyenv', () => {
 		installPyenv(context);
@@ -27,16 +26,33 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('vscode-thothglyph.updatePyenv', () => {
 		updatePyenv(context);
 	}));
+	context.subscriptions.push(vscode.commands.registerCommand('vscode-thothglyph.exportPreview', () => {
+		exportPreview(context);
+	}));
 	context.subscriptions.push(vscode.commands.registerCommand('vscode-thothglyph.exportFileAs', () => {
 		exportFile(context, true);
 	}));
-	context.subscriptions.push(vscode.commands.registerCommand('vscode-thothglyph.exportFileHtml', () => {
-		exportLast = 'html';
+	context.subscriptions.push(vscode.commands.registerCommand('vscode-thothglyph.exportFile', () => {
 		exportFile(context, false);
 	}));
+	// ontext.subscriptions.push(vscode.commands.registerCommand('vscode-thothglyph.exportFileHtml', () => {
+	// 	exportLast = 'html';
+	// 	exportFile(context, false);
+	// ));
 	context.subscriptions.push(vscode.commands.registerCommand('vscode-thothglyph.editor.replaceSymbols', () => {
 		replaceSymbols();
 	}));
+
+	// vscode.workspace.onDidSaveTextDocument( event => {
+	// 	let editor = vscode.window.activeTextEditor;
+	// 	if (!editor) {
+	// 		return;
+	// 	}
+	// 	if (editor.document.languageId != 'thothglyph') {
+	// 		return;
+	// 	}
+	// 	exportPreview(context);
+	// });
 }
 
 export function deactivate()
@@ -55,47 +71,41 @@ function installPyenv(context: vscode.ExtensionContext) {
 	}
 
 	vscode.window.withProgress({title: 'Install Thothglyph', location: vscode.ProgressLocation.Notification}, async progress => {
-		progress.report({ message: 'mkdir <globalStrage>' });
+		await progress.report({ message: 'mkdir <globalStrage>' });
 		if (!existsSync(thothglyphHome)) {
 			mkdirSync(thothglyphHome);
 		}
 
-		progress.report({ message: 'python -m venv', increment: 10 });
+		await progress.report({ message: 'python -m venv', increment: 10 });
 		if (!existsSync(pyenvPath)) {
 			try {
 				execSync('python -m venv ' + pyenvName, { cwd: thothglyphHome });
 			}
 			catch(error: any){
-				if (error !== null) {
-					console.log('exec error: ' + error);
-					vscode.window.showErrorMessage('exec error: ' + error);
-				}
 				var stderr = error.stderr.toString();
 				if (stderr !== null && stderr !== '') {
 					console.log(stderr.toString());
-					vscode.window.showErrorMessage('stderr: ' + stderr.toString());
+					vscode.window.showErrorMessage('Error: ' + stderr.toString());
 				}
+				return;
 			}
 		}
 
-		progress.report({ message: 'pip install thothglyph-doc', increment: 30 });
+		await progress.report({ message: 'pip install thothglyph-doc', increment: 30 });
 		if (!existsSync(thothglyphCmd)) {
 			try {
 				execSync(path.join(pyenvName, pyenvBin, 'pip') + ' install thothglyph-doc', { cwd: thothglyphHome });
 			}
 			catch(error: any){
-				if (error !== null) {
-					console.log('exec error: ' + error);
-					vscode.window.showErrorMessage('exec error: ' + error);
-				}
 				var stderr = error.stderr.toString();
 				if (stderr !== null && stderr !== '') {
 					console.log(stderr.toString());
-					vscode.window.showErrorMessage('stderr: ' + stderr.toString());
+					vscode.window.showErrorMessage('Error: ' + stderr.toString());
 				}
+				return;
 			}
 		}
-		progress.report({ message: 'finished', increment: 60 });
+		await progress.report({ message: 'finished', increment: 60 });
 		await promises_setTimeout(5000);
 	});
 }
@@ -107,34 +117,46 @@ function updatePyenv(context: vscode.ExtensionContext) {
 	let pyenvPath = path.join(thothglyphHome, pyenvName);
 	let thothglyphCmd = path.join(pyenvPath, pyenvBin, 'thothglyph');
 
-	if (!existsSync(thothglyphCmd)) {
-		return;
-	}
-	try {
-		var stdout = execSync(path.join(pyenvName, pyenvBin, 'pip') + ' list -o', { cwd: thothglyphHome }).toString();
-		if (stdout.search("thothglyph") < 0) {
-			// already latest version.
+	vscode.window.withProgress({title: 'Update Thothglyph', location: vscode.ProgressLocation.Notification}, async progress => {
+		await progress.report({ message: 'update start', increment: 10 });
+		if (!existsSync(thothglyphCmd)) {
+			installPyenv(context);
 			return;
 		}
-	}
-	catch(error: any){
-	}
+		try {
+			var stdout = execSync(path.join(pyenvName, pyenvBin, 'pip') + ' list -o', { cwd: thothglyphHome }).toString();
+			if (stdout.search("thothglyph") < 0) {
+				// already latest version.
+				await progress.report({ message: 'already latest version.', increment: 90 });
+				await promises_setTimeout(5000);
+				return;
+			}
+		}
+		catch(error: any){
+			// maybe pyenv is broken. so reinstall environment.
+			await progress.report({ message: 'maybe pyenv is broken. so reinstall environment.', increment: 10 });
+			try {
+				fs.rmSync(pyenvPath, { recursive: true, force: true });
+				installPyenv(context);
+			}
+			catch(error: any){
+			}
+			await progress.report({ message: 'finished: ', increment: 80 });
+			await promises_setTimeout(5000);
+			return;
+		}
 
-	vscode.window.withProgress({title: 'Update Thothglyph', location: vscode.ProgressLocation.Notification}, async progress => {
-		progress.report({ message: 'pip install -U thothglyph-doc', increment: 30 });
+		await progress.report({ message: 'pip install -U thothglyph-doc', increment: 20 });
 		try {
 			execSync(path.join(pyenvName, pyenvBin, 'pip') + ' install -U thothglyph-doc', { cwd: thothglyphHome });
 		}
 		catch(error: any){
-			if (error !== null) {
-				console.log('exec error: ' + error);
-				vscode.window.showErrorMessage('exec error: ' + error);
-			}
 			var stderr = error.stderr.toString();
 			if (stderr !== null && stderr !== '') {
 				console.log(stderr.toString());
-				vscode.window.showErrorMessage('stderr: ' + stderr.toString());
+				vscode.window.showErrorMessage('Error: ' + stderr.toString());
 			}
+			return;
 		}
 
 		var stdout = "";
@@ -142,19 +164,62 @@ function updatePyenv(context: vscode.ExtensionContext) {
 			stdout = execSync(path.join(pyenvName, pyenvBin, 'thothglyph') + ' -v', { cwd: thothglyphHome }).toString();
 		}
 		catch(error: any){
-			if (error !== null) {
-				console.log('exec error: ' + error);
-				vscode.window.showErrorMessage('exec error: ' + error);
-			}
 			var stderr = error.stderr.toString();
 			if (stderr !== null && stderr !== '') {
 				console.log(stderr.toString());
-				vscode.window.showErrorMessage('stderr: ' + stderr.toString());
+				vscode.window.showErrorMessage('Error: ' + stderr.toString());
 			}
+			return;
 		}
-		progress.report({ message: 'finished: ' + stdout, increment: 60 });
+		await progress.report({ message: 'finished: ' + stdout, increment: 60 });
 		await promises_setTimeout(5000);
 	});
+}
+
+async function exportPreview(context: vscode.ExtensionContext) {
+	let thothglyphHome = context.globalStorageUri.fsPath;
+	let pyenvName = 'pyenv';
+	let pyenvBin = (is_win ? 'Scripts' : 'bin');
+	let pyenvPath = path.join(thothglyphHome, pyenvName);
+	let thothglyphCmd = path.join(pyenvPath, pyenvBin, 'thothglyph');
+
+	let editor = vscode.window.activeTextEditor;
+	if (!editor) {
+		return;
+	}
+	if ((editor.document.languageId != 'thothglyph') && (editor.document.languageId != 'thothglyphMd')) {
+		return;
+	}
+
+	let inputFilePath = path.parse(path.normalize(editor.document.fileName));
+	
+	let reject = false;
+	let toFmt = 'html';
+
+	if (!reject) {
+		let extensionConfig: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('htmlPreview');
+		let templateDir = extensionConfig.get<string>("templateDirectory") ?? "";
+		let templateTheme = extensionConfig.get<string>("templateTheme") ?? "";
+
+		let outputName = 'preview.html';
+		let cmd = thothglyphCmd + ' -t ' +  toFmt + ' ' + inputFilePath.base + ' -o ' + outputName;
+		if (templateDir != "") {
+			cmd += ' --template ' + templateDir
+		}
+		if (templateTheme != "") {
+			cmd += ' --theme ' + templateTheme
+		}
+		try {
+			execSync(cmd, { cwd: inputFilePath.dir });
+		}
+		catch(error: any){
+			var stderr = error.stderr.toString();
+			if (stderr !== null && stderr !== '') {
+				console.log(stderr.toString());
+				vscode.window.showErrorMessage('Error: ' + stderr.toString());
+			}
+		}
+	}
 }
 
 async function exportFile(context: vscode.ExtensionContext, asnew: boolean) {
@@ -168,7 +233,7 @@ async function exportFile(context: vscode.ExtensionContext, asnew: boolean) {
 	if (!editor) {
 		return;
 	}
-	if (editor.document.languageId != 'thothglyph') {
+	if ((editor.document.languageId != 'thothglyph') && (editor.document.languageId != 'thothglyphMd')) {
 		return;
 	}
 
@@ -194,23 +259,26 @@ async function exportFile(context: vscode.ExtensionContext, asnew: boolean) {
 	}
 
 	if (!reject) {
-		let outputName = inputFilePath.name + '.' + toFmt;
-		let cmd = thothglyphCmd + ' -t ' +  toFmt + ' ' + inputFilePath.base;
-		try {
-			execSync(cmd, { cwd: inputFilePath.dir });
-			vscode.window.showInformationMessage('Exported: ' + outputName);
-		}
-		catch(error: any){
-			if (error !== null) {
-				console.log('exec error: ' + error);
-				vscode.window.showErrorMessage('exec error: ' + error);
+		vscode.window.withProgress({title: 'Export file', location: vscode.ProgressLocation.Notification}, async progress => {
+			await progress.report({ message: toFmt + ' start', increment: 10 });
+	
+			let outputName = inputFilePath.name + '.' + toFmt;
+			let cmd = thothglyphCmd + ' -t ' +  toFmt + ' ' + inputFilePath.base;
+			try {
+				await progress.report({ message: 'cmd: ' + cmd, increment: 10 });
+				execSync(cmd, { cwd: inputFilePath.dir });
 			}
-			var stderr = error.stderr.toString();
-			if (stderr !== null && stderr !== '') {
-				console.log(stderr.toString());
-				vscode.window.showErrorMessage('stderr: ' + stderr.toString());
+			catch(error: any){
+				var stderr = error.stderr.toString();
+				if (stderr !== null && stderr !== '') {
+					console.log(stderr.toString());
+					vscode.window.showErrorMessage('Error: ' + stderr.toString());
+				}
+				return;
 			}
-		}
+			await progress.report({ message: 'finished: ' + outputName, increment: 80 });
+			await promises_setTimeout(5000);
+		});
 	}
 }
 
@@ -253,6 +321,21 @@ function replaceSymbols()
 	} else
 	if (symbol2 == '%%') {
 		editor.edit(editBuilder => {editBuilder.replace(range2, '⑇⑇');});
+	} else
+	if (symbol2 == '@1') {
+		editor.edit(editBuilder => {editBuilder.replace(range2, '🔴');});
+	} else
+	if (symbol2 == '@2') {
+		editor.edit(editBuilder => {editBuilder.replace(range2, '🟡');});
+	} else
+	if (symbol2 == '@3') {
+		editor.edit(editBuilder => {editBuilder.replace(range2, '🟢');});
+	} else
+	if (symbol2 == '@4') {
+		editor.edit(editBuilder => {editBuilder.replace(range2, '🔵');});
+	} else
+	if (symbol2 == '@5') {
+		editor.edit(editBuilder => {editBuilder.replace(range2, '🟣');});
 	} else
 	if (symbol == '%') {
 		editor.edit(editBuilder => {editBuilder.replace(range, '⑇');});
@@ -323,10 +406,10 @@ function replaceSymbols()
 	} else
 	/* Deco symbol */
 	if (symbol == '•') {
-		editor.edit(editBuilder => {editBuilder.replace(range, '⋄');});
+		editor.edit(editBuilder => {editBuilder.replace(range, '⧫');});
 	} else
 	if (symbol == '/') {
-		editor.edit(editBuilder => {editBuilder.replace(range, '⁒');});
+		editor.edit(editBuilder => {editBuilder.replace(range, '🙼');});
 	} else
 	if (symbol == '_') {
 		editor.edit(editBuilder => {editBuilder.replace(range, '‗');});
@@ -340,8 +423,11 @@ function replaceSymbols()
 	if (symbol == '⏷') {
 		editor.edit(editBuilder => {editBuilder.replace(range, '⌄');});
 	} else
-	if (symbol == 'ᛝ') {
-		editor.edit(editBuilder => {editBuilder.replace(range, '⫶');});
+	if (symbol == '🙼') {
+		editor.edit(editBuilder => {editBuilder.replace(range, '⁒');});
+	} else
+	if (symbol == ';') {
+		editor.edit(editBuilder => {editBuilder.replace(range, '⟠');});
 	} else
 	{
 	}

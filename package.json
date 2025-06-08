@@ -2,7 +2,7 @@
   "name": "vscode-thothglyph",
   "displayName": "vscode-thothglyph",
   "description": "Thothglyph support for Visual Studio Code",
-  "version": "0.0.5",
+  "version": "0.0.7",
 
   "publisher": "nakandev",
   "license": "SEE LICENSE",
@@ -21,10 +21,6 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:vscode-thothglyph.installPyenv",
-    "onCommand:vscode-thothglyph.updatePyenv",
-    "onCommand:vscode-thothglyph.exportFileAs",
-    "onCommand:vscode-thothglyph.exportFileHtml",
     "onStartupFinished"
   ],
   "main": "./dist/extension.js",
@@ -46,17 +42,17 @@
         "category": "Thothglyph"
       },
       {
-        "command": "vscode-thothglyph.exportFileHtml",
-        "title": "Export File As Html",
+        "command": "vscode-thothglyph.exportFile",
+        "title": "Export File",
+        "category": "Thothglyph"
+      },
+      {
+        "command": "vscode-thothglyph.exportPreview",
+        "title": "Export HTML Preview File",
         "category": "Thothglyph"
       }
     ],
     "menus": {
-        "commandPalette": [
-        {
-          "command": "vscode-thothglyph.exportFileHtml",
-            "when": "false"
-        }]
     },
     "keybindings": [
       {
@@ -64,8 +60,24 @@
           "win": "ctrl+e",
           "linux": "ctrl+e",
           "key": "ctrl+e",
-          "command": "vscode-thothglyph.exportFileHtml",
-          "when": "editorTextFocus && !editorReadonly"
+          "command": "vscode-thothglyph.exportFile",
+          "when": "editorTextFocus && !editorReadonly && (editorLangId==thothglyph || editorLangId==thothglyphMd)"
+      },
+      {
+          "mac": "cmd+e",
+          "win": "ctrl+shift+e",
+          "linux": "ctrl+shift+e",
+          "key": "ctrl+shift+e",
+          "command": "vscode-thothglyph.exportFileAs",
+          "when": "editorTextFocus && !editorReadonly && (editorLangId==thothglyph || editorLangId==thothglyphMd)"
+      },
+      {
+          "mac": "cmd+e",
+          "win": "ctrl+e",
+          "linux": "ctrl+e",
+          "key": "ctrl+e",
+          "command": "vscode-thothglyph.exportPreview",
+          "when": "editorTextFocus && !editorReadonly && (editorLangId==thothglyph || editorLangId==thothglyphMd)"
       },
       {
           "key": "shift+space",
@@ -82,8 +94,30 @@
         "extensions": [
           ".tglyph"
         ]
+      },
+      {
+        "id": "thothglyphMd",
+        "aliases": [
+          "Thothglyph Markdown"
+        ],
+        "extensions": [
+          ".md"
+        ]
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Thothglyph",
+      "properties": {
+        "htmlPreview.templateDirectory": {
+          "type": "string",
+          "default": ""
+        },
+        "htmlPreview.templateTheme": {
+          "type": "string",
+          "default": "preview"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
