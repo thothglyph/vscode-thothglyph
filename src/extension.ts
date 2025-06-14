@@ -24,9 +24,6 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('vscode-thothglyph.installPyenv', () => {
 		installPyenv(context);
 	}));
-	context.subscriptions.push(vscode.commands.registerCommand('vscode-thothglyph.updatePyenv', () => {
-		updatePyenv(context);
-	}));
 	context.subscriptions.push(vscode.commands.registerCommand('vscode-thothglyph.exportFileAs', () => {
 		exportFile(context, true);
 	}));
@@ -75,11 +72,12 @@ function installPyenv(context: vscode.ExtensionContext) {
 	let pyenvPath = path.join(thothglyphHome, pyenvName);
 	let thothglyphCmd = path.join(pyenvPath, pyenvBin, 'thothglyph');
 
+	let installOrUpdate = "Install";
 	if (existsSync(thothglyphCmd)) {
-		return;
+		installOrUpdate = "Update";
 	}
 
-	vscode.window.withProgress({title: 'Install Thothglyph', location: vscode.ProgressLocation.Notification}, async progress => {
+	vscode.window.withProgress({title: installOrUpdate + ' Thothglyph', location: vscode.ProgressLocation.Notification}, async progress => {
 		await progress.report({ message: 'mkdir <globalStrage>' });
 		if (!existsSync(thothglyphHome)) {
 			mkdirSync(thothglyphHome);
@@ -100,47 +98,9 @@ function installPyenv(context: vscode.ExtensionContext) {
 			}
 		}
 
-		let modules = ['wavedrom', 'thothglyph-doc'];
+		let modules = ['wavedrom', 'python-docx', 'thothglyph-doc'];
 		for (let i = 0; i < modules.length; i++) {
-			await progress.report({ message: 'pip install ' + modules[i], increment: (40/modules.length) });
-			if (!existsSync(thothglyphCmd)) {
-				try {
-					execSync(path.join(pyenvName, pyenvBin, 'pip') + ' install ' + modules[i], { cwd: thothglyphHome });
-				}
-				catch(error: any){
-					var stderr = error.stderr.toString();
-					if (stderr !== null && stderr !== '') {
-						console.log(stderr.toString());
-						vscode.window.showErrorMessage('Error: ' + stderr.toString());
-					}
-					return;
-				}
-			}
-			await promises_setTimeout(5000);
-		}
-
-		await progress.report({ message: 'finished', increment: 50 });
-		await promises_setTimeout(5000);
-	});
-}
-
-function updatePyenv(context: vscode.ExtensionContext) {
-	let thothglyphHome = context.globalStorageUri.fsPath;
-	let pyenvName = 'pyenv';
-	let pyenvBin = (is_win ? 'Scripts' : 'bin');
-	let pyenvPath = path.join(thothglyphHome, pyenvName);
-	let thothglyphCmd = path.join(pyenvPath, pyenvBin, 'thothglyph');
-
-	vscode.window.withProgress({title: 'Update Thothglyph', location: vscode.ProgressLocation.Notification}, async progress => {
-		await progress.report({ message: 'update start', increment: 10 });
-		if (!existsSync(thothglyphCmd)) {
-			installPyenv(context);
-			return;
-		}
-
-		let modules = ['thothglyph-doc', 'wavedrom'];
-		for (let i = 0; i < modules.length; i++) {
-			await progress.report({ message: 'pip install -U ' + modules[i], increment: 40/modules.length });
+			await progress.report({ message: 'pip install -U ' + modules[i], increment: (40/modules.length) });
 			if (!existsSync(thothglyphCmd)) {
 				try {
 					execSync(path.join(pyenvName, pyenvBin, 'pip') + ' install -U ' + modules[i], { cwd: thothglyphHome });
@@ -154,6 +114,7 @@ function updatePyenv(context: vscode.ExtensionContext) {
 					return;
 				}
 			}
+			await promises_setTimeout(5000);
 		}
 
 		var stdout = "";
@@ -168,7 +129,7 @@ function updatePyenv(context: vscode.ExtensionContext) {
 			}
 			return;
 		}
-		await progress.report({ message: 'finished: ' + stdout, increment: 40 });
+		await progress.report({ message: 'finished: ' + stdout, increment: 50 });
 		await promises_setTimeout(5000);
 	});
 }
