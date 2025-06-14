@@ -12,6 +12,7 @@ const is_mac = process.platform==='darwin'
 const is_nix = process.platform==='linux'
 
 let exportLast = 'html';
+let previewTarget = '';
 
 let editorKeyPressed: string[] = [];
 let keyPressTimeout: NodeJS.Timeout | undefined = undefined;
@@ -26,33 +27,41 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('vscode-thothglyph.updatePyenv', () => {
 		updatePyenv(context);
 	}));
-	context.subscriptions.push(vscode.commands.registerCommand('vscode-thothglyph.exportPreview', () => {
-		exportPreview(context);
-	}));
 	context.subscriptions.push(vscode.commands.registerCommand('vscode-thothglyph.exportFileAs', () => {
 		exportFile(context, true);
 	}));
 	context.subscriptions.push(vscode.commands.registerCommand('vscode-thothglyph.exportFile', () => {
 		exportFile(context, false);
 	}));
-	// ontext.subscriptions.push(vscode.commands.registerCommand('vscode-thothglyph.exportFileHtml', () => {
-	// 	exportLast = 'html';
-	// 	exportFile(context, false);
-	// ));
+	context.subscriptions.push(vscode.commands.registerCommand('vscode-thothglyph.setAsPreview', () => {
+		setAsPreview(context);
+	}));
+	context.subscriptions.push(vscode.commands.registerCommand('vscode-thothglyph.showPreview', () => {
+		showPreview(context);
+	}));
 	context.subscriptions.push(vscode.commands.registerCommand('vscode-thothglyph.editor.replaceSymbols', () => {
 		replaceSymbols();
 	}));
 
-	// vscode.workspace.onDidSaveTextDocument( event => {
-	// 	let editor = vscode.window.activeTextEditor;
-	// 	if (!editor) {
-	// 		return;
-	// 	}
-	// 	if (editor.document.languageId != 'thothglyph') {
-	// 		return;
-	// 	}
-	// 	exportPreview(context);
-	// });
+	vscode.workspace.onDidSaveTextDocument( event => {
+		let editor = vscode.window.activeTextEditor;
+		if (!editor) {
+			return;
+		}
+		if ((editor.document.languageId != 'thothglyph') && (editor.document.languageId != 'thothglyphMd')) {
+			return;
+		}
+
+		if (previewTarget == "") {
+			return;
+		}
+
+		let previewTargetDir = path.dirname(previewTarget);
+		let editDir = path.dirname(path.normalize(editor.document.fileName));
+		if (editDir.includes(previewTargetDir)) {
+			exportPreview(context);
+		}
+	});
 }
 
 export function deactivate()
@@ -91,21 +100,26 @@ function installPyenv(context: vscode.ExtensionContext) {
 			}
 		}
 
-		await progress.report({ message: 'pip install thothglyph-doc', increment: 30 });
-		if (!existsSync(thothglyphCmd)) {
-			try {
-				execSync(path.join(pyenvName, pyenvBin, 'pip') + ' install thothglyph-doc', { cwd: thothglyphHome });
-			}
-			catch(error: any){
-				var stderr = error.stderr.toString();
-				if (stderr !== null && stderr !== '') {
-					console.log(stderr.toString());
-					vscode.window.showErrorMessage('Error: ' + stderr.toString());
+		let modules = ['wavedrom', 'thothglyph-doc'];
+		for (let i = 0; i < modules.length; i++) {
+			await progress.report({ message: 'pip install ' + modules[i], increment: (40/modules.length) });
+			if (!existsSync(thothglyphCmd)) {
+				try {
+					execSync(path.join(pyenvName, pyenvBin, 'pip') + ' install ' + modules[i], { cwd: thothglyphHome });
 				}
-				return;
+				catch(error: any){
+					var stderr = error.stderr.toString();
+					if (stderr !== null && stderr !== '') {
+						console.log(stderr.toString());
+						vscode.window.showErrorMessage('Error: ' + stderr.toString());
+					}
+					return;
+				}
 			}
+			await promises_setTimeout(5000);
 		}
-		await progress.report({ message: 'finished', increment: 60 });
+
+		await progress.report({ message: 'finished', increment: 50 });
 		await promises_setTimeout(5000);
 	});
 }
@@ -123,40 +137,23 @@ function updatePyenv(context: vscode.ExtensionContext) {
 			installPyenv(context);
 			return;
 		}
-		try {
-			var stdout = execSync(path.join(pyenvName, pyenvBin, 'pip') + ' list -o', { cwd: thothglyphHome }).toString();
-			if (stdout.search("thothglyph") < 0) {
-				// already latest version.
-				await progress.report({ message: 'already latest version.', increment: 90 });
-				await promises_setTimeout(5000);
-				return;
-			}
-		}
-		catch(error: any){
-			// maybe pyenv is broken. so reinstall environment.
-			await progress.report({ message: 'maybe pyenv is broken. so reinstall environment.', increment: 10 });
-			try {
-				fs.rmSync(pyenvPath, { recursive: true, force: true });
-				installPyenv(context);
-			}
-			catch(error: any){
-			}
-			await progress.report({ message: 'finished: ', increment: 80 });
-			await promises_setTimeout(5000);
-			return;
-		}
 
-		await progress.report({ message: 'pip install -U thothglyph-doc', increment: 20 });
-		try {
-			execSync(path.join(pyenvName, pyenvBin, 'pip') + ' install -U thothglyph-doc', { cwd: thothglyphHome });
-		}
-		catch(error: any){
-			var stderr = error.stderr.toString();
-			if (stderr !== null && stderr !== '') {
-				console.log(stderr.toString());
-				vscode.window.showErrorMessage('Error: ' + stderr.toString());
+		let modules = ['thothglyph-doc', 'wavedrom'];
+		for (let i = 0; i < modules.length; i++) {
+			await progress.report({ message: 'pip install -U ' + modules[i], increment: 40/modules.length });
+			if (!existsSync(thothglyphCmd)) {
+				try {
+					execSync(path.join(pyenvName, pyenvBin, 'pip') + ' install -U ' + modules[i], { cwd: thothglyphHome });
+				}
+				catch(error: any){
+					var stderr = error.stderr.toString();
+					if (stderr !== null && stderr !== '') {
+						console.log(stderr.toString());
+						vscode.window.showErrorMessage('Error: ' + stderr.toString());
+					}
+					return;
+				}
 			}
-			return;
 		}
 
 		var stdout = "";
@@ -171,55 +168,9 @@ function updatePyenv(context: vscode.ExtensionContext) {
 			}
 			return;
 		}
-		await progress.report({ message: 'finished: ' + stdout, increment: 60 });
+		await progress.report({ message: 'finished: ' + stdout, increment: 40 });
 		await promises_setTimeout(5000);
 	});
-}
-
-async function exportPreview(context: vscode.ExtensionContext) {
-	let thothglyphHome = context.globalStorageUri.fsPath;
-	let pyenvName = 'pyenv';
-	let pyenvBin = (is_win ? 'Scripts' : 'bin');
-	let pyenvPath = path.join(thothglyphHome, pyenvName);
-	let thothglyphCmd = path.join(pyenvPath, pyenvBin, 'thothglyph');
-
-	let editor = vscode.window.activeTextEditor;
-	if (!editor) {
-		return;
-	}
-	if ((editor.document.languageId != 'thothglyph') && (editor.document.languageId != 'thothglyphMd')) {
-		return;
-	}
-
-	let inputFilePath = path.parse(path.normalize(editor.document.fileName));
-	
-	let reject = false;
-	let toFmt = 'html';
-
-	if (!reject) {
-		let extensionConfig: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('htmlPreview');
-		let templateDir = extensionConfig.get<string>("templateDirectory") ?? "";
-		let templateTheme = extensionConfig.get<string>("templateTheme") ?? "";
-
-		let outputName = 'preview.html';
-		let cmd = thothglyphCmd + ' -t ' +  toFmt + ' ' + inputFilePath.base + ' -o ' + outputName;
-		if (templateDir != "") {
-			cmd += ' --template ' + templateDir
-		}
-		if (templateTheme != "") {
-			cmd += ' --theme ' + templateTheme
-		}
-		try {
-			execSync(cmd, { cwd: inputFilePath.dir });
-		}
-		catch(error: any){
-			var stderr = error.stderr.toString();
-			if (stderr !== null && stderr !== '') {
-				console.log(stderr.toString());
-				vscode.window.showErrorMessage('Error: ' + stderr.toString());
-			}
-		}
-	}
 }
 
 async function exportFile(context: vscode.ExtensionContext, asnew: boolean) {
@@ -280,6 +231,79 @@ async function exportFile(context: vscode.ExtensionContext, asnew: boolean) {
 			await promises_setTimeout(5000);
 		});
 	}
+}
+
+async function exportPreview(context: vscode.ExtensionContext) {
+	let thothglyphHome = context.globalStorageUri.fsPath;
+	let pyenvName = 'pyenv';
+	let pyenvBin = (is_win ? 'Scripts' : 'bin');
+	let pyenvPath = path.join(thothglyphHome, pyenvName);
+	let thothglyphCmd = path.join(pyenvPath, pyenvBin, 'thothglyph');
+
+	let editor = vscode.window.activeTextEditor;
+	if (!editor) {
+		return;
+	}
+	if ((editor.document.languageId != 'thothglyph') && (editor.document.languageId != 'thothglyphMd')) {
+		return;
+	}
+
+	if (previewTarget == "") {
+		return;
+	}
+
+	let inputFilePath = path.parse(previewTarget);
+
+	let reject = false;
+	let toFmt = 'html';
+
+	if (!reject) {
+		let extensionConfig: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('htmlPreview');
+		let templateDir = extensionConfig.get<string>("templateDirectory") ?? "";
+		let templateTheme = extensionConfig.get<string>("templateTheme") ?? "";
+
+		let outputPath = path.join(thothglyphHome, 'preview.html');
+		let cmd = thothglyphCmd + ' -t ' +  toFmt + ' ' + inputFilePath.base + ' -o ' + outputPath;
+		if (templateDir != "") {
+			cmd += ' --template ' + templateDir
+		}
+		if (templateTheme != "") {
+			cmd += ' --theme ' + templateTheme
+		}
+		try {
+			execSync(cmd, { cwd: inputFilePath.dir });
+		}
+		catch(error: any){
+			var stderr = error.stderr.toString();
+			if (stderr !== null && stderr !== '') {
+				console.log(stderr.toString());
+				vscode.window.showErrorMessage('Error: ' + stderr.toString());
+			}
+		}
+	}
+}
+
+async function setAsPreview(context: vscode.ExtensionContext) {
+	let editor = vscode.window.activeTextEditor;
+	if (!editor) {
+		return;
+	}
+	if ((editor.document.languageId != 'thothglyph') && (editor.document.languageId != 'thothglyphMd')) {
+		return;
+	}
+
+	previewTarget = path.normalize(editor.document.fileName);
+	vscode.window.showInformationMessage("Set as preview: " + editor.document.fileName);
+
+	exportPreview(context);
+}
+
+async function showPreview(context: vscode.ExtensionContext) {
+	let thothglyphHome = context.globalStorageUri.fsPath;
+	let previewPath = path.join(thothglyphHome, 'preview.html.dir', 'index.html');
+    let uriManual: vscode.Uri = vscode.Uri.file(previewPath);
+	exportPreview(context);
+    vscode.commands.executeCommand('markdown.showPreviewToSide', uriManual);
 }
 
 function replaceSymbols()

@@ -2,7 +2,7 @@
   "name": "vscode-thothglyph",
   "displayName": "vscode-thothglyph",
   "description": "Thothglyph support for Visual Studio Code",
-  "version": "0.0.7",
+  "version": "0.1.0",
 
   "publisher": "nakandev",
   "license": "SEE LICENSE",
@@ -47,8 +47,13 @@
         "category": "Thothglyph"
       },
       {
-        "command": "vscode-thothglyph.exportPreview",
-        "title": "Export HTML Preview File",
+        "command": "vscode-thothglyph.setAsPreview",
+        "title": "Set File As Preview",
+        "category": "Thothglyph"
+      },
+      {
+        "command": "vscode-thothglyph.showPreview",
+        "title": "Show Preview",
         "category": "Thothglyph"
       }
     ],
@@ -72,11 +77,19 @@
           "when": "editorTextFocus && !editorReadonly && (editorLangId==thothglyph || editorLangId==thothglyphMd)"
       },
       {
-          "mac": "cmd+e",
-          "win": "ctrl+e",
-          "linux": "ctrl+e",
-          "key": "ctrl+e",
-          "command": "vscode-thothglyph.exportPreview",
+          "mac": "cmd+r",
+          "win": "ctrl+r",
+          "linux": "ctrl+r",
+          "key": "ctrl+r",
+          "command": "vscode-thothglyph.setAsPreview",
+          "when": "editorTextFocus && !editorReadonly && (editorLangId==thothglyph || editorLangId==thothglyphMd)"
+      },
+      {
+          "mac": "cmd+shift+v",
+          "win": "ctrl+shift+v",
+          "linux": "ctrl+shift+v",
+          "key": "ctrl+shift+v",
+          "command": "vscode-thothglyph.showPreview",
           "when": "editorTextFocus && !editorReadonly && (editorLangId==thothglyph || editorLangId==thothglyphMd)"
       },
       {
