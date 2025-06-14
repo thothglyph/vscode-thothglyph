@@ -5,8 +5,8 @@ This extension provides language support for Thothglyph to Visual Studio Code.
 ## Features
 
 * File Export
+* Live Preview
 * Editor Enhancement
-* Live Preview [TODO]
 
 ## Requirements
 
@@ -17,12 +17,20 @@ This extension provides language support for Thothglyph to Visual Studio Code.
 
 ### File Export
 
-* Open .tglyph file
-* Command palette (Ctrl + Shift + P)
-* Type "Thothglyph" and click "Thothglyph: Export File"
-* Select export format
+* Open .tglyph or .md file, and activate the editor
+* ``Ctrl + E`` to export file (default file format: HTML)
+* ``Ctrl + Shift + E`` to export file after selecting file format
+
+### Live Preview
+
+* Open .tglyph or .md file, and activate the editor
+* ``Ctrl + R`` to set file as preview
+* ``Ctrl + Shift + V`` to open preview
+* Save the file, the preview automatically update
 
 ### Editor Enhancement
+
+* Input .tglyph symbols
 
 See [document](https://thothglyph-doc.readthedocs.io/en/latest/tool/vscode.html)
 

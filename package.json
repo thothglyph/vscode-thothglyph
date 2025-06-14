@@ -2,7 +2,7 @@
   "name": "vscode-thothglyph",
   "displayName": "vscode-thothglyph",
   "description": "Thothglyph support for Visual Studio Code",
-  "version": "0.1.0",
+  "version": "0.1.1",
 
   "publisher": "nakandev",
   "license": "SEE LICENSE",
@@ -28,12 +28,7 @@
     "commands": [
       {
         "command": "vscode-thothglyph.installPyenv",
-        "title": "Install Environment",
-        "category": "Thothglyph"
-      },
-      {
-        "command": "vscode-thothglyph.updatePyenv",
-        "title": "Update Environment",
+        "title": "Install / Update Environment",
         "category": "Thothglyph"
       },
       {
